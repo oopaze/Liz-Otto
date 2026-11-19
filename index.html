@@ -298,6 +298,12 @@
     const p = form.querySelector('input[name="palpite"]:checked');
     const veio = vem();
     const convidados = veio ? [...new Set(nomesCompanhias())] : [];
+    if (veio && !convidados.length && !window.confirm(
+      "Você não adicionou nenhuma companhia. Tem certeza que vai sozinho(a)?\n\nClique em OK para enviar assim ou em Cancelar para voltar e adicionar."
+    )) {
+      form.convidados.focus();
+      return;
+    }
     const msg = form.msg.value.trim();
     const palpite = veio && p ? p.value : "";
 
