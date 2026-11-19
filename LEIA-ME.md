@@ -37,11 +37,17 @@ Envie esse link para os convidados.
 
 ## Na planilha
 
-A aba **Confirmações** é criada sozinha na primeira resposta, com estas colunas: Data/hora, Nome, Vem?, Adultos, Crianças, Palpite e Recadinho.
+O cabeçalho continua o mesmo: Data/hora, Nome, Vem?, Adultos, Crianças, Palpite e Recadinho.
+
+Cada pessoa ocupa uma linha:
+
+- a primeira linha é quem preencheu o formulário;
+- cada companhia vira uma linha própria, com o nome no formato `Fulano (Junto a Beltrano)`;
+- criança não ganha linha própria: a coluna **Crianças** fica na linha de quem confirmou, para você preencher a quantidade (o formulário não pergunta idade).
 
 Para ver os totais, use em qualquer célula:
 
-- Total de adultos: `=SOMA(Confirmações!D:D)`
+- Total de pessoas: `=SOMA(Confirmações!D:D)`
 - Total de crianças: `=SOMA(Confirmações!E:E)`
 - Palpites Liz: `=CONT.SE(Confirmações!F:F;"Liz*")`
 - Palpites Otto: `=CONT.SE(Confirmações!F:F;"Otto*")`

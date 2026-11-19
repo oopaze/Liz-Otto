@@ -96,6 +96,7 @@
   .submit:hover { background: #4F6A45; }
   .submit:disabled { opacity: .7; cursor: wait; }
   .thanks { text-align: center; padding: 10px 0 4px; }
+  .thanks:focus { outline: none; }
   .thanks p { margin: 6px 0; }
   .geese { display: flex; justify-content: space-between; align-items: flex-end; margin: 24px -10px -24px; }
   .geese img { width: 38%; max-width: 190px; height: auto; display: block; }
@@ -194,21 +195,11 @@
         </fieldset>
 
         <div id="se-vem">
-          <div class="row">
-            <div class="field">
-              <label for="adultos">Adultos</label>
-              <select id="adultos" name="adultos">
-                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="criancas">Crianças</label>
-              <select id="criancas" name="criancas">
-                <option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-              </select>
-            </div>
+          <div class="field">
+            <label for="convidados">Quem vem com você?</label>
+            <input type="text" id="convidados" name="convidados" placeholder="Separe os nomes por vírgula">
+            <p class="hint">Ex.: João Silva, Maria Souza. Deixe em branco se vier sozinho.</p>
           </div>
-          <p class="hint" style="margin: -8px 0 18px">Contando com você.</p>
 
           <fieldset class="field">
             <legend>Seu palpite</legend>
@@ -231,6 +222,7 @@
       <div class="thanks" id="thanks" hidden tabindex="-1">
         <h2>Obrigado!</h2>
         <p id="thanks-text">Recebemos sua resposta.</p>
+        <p class="hint" id="thanks-guests" hidden></p>
         <p class="hint" id="thanks-info" hidden></p>
         <div class="btns"><button class="btn" type="button" id="edit">Confirmar outra pessoa</button></div>
       </div>
@@ -261,17 +253,25 @@
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; } catch { return null; }
   }
 
-  function salvarConfirmacao(nome, veio) {
+  function salvarConfirmacao(nome, veio, convidados) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ nome, vem: veio, quando: new Date().toISOString() }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ nome, vem: veio, convidados, quando: new Date().toISOString() }));
     } catch {}
   }
 
-  function mostrarObrigado(nome, veio, jaConfirmado) {
+  function mostrarObrigado(nome, veio, jaConfirmado, convidados) {
     const primeiro = nome.split(/\s+/)[0];
     document.getElementById("thanks-text").textContent = veio
       ? `Que alegria ter você com a gente, ${primeiro}! Sua presença está confirmada.`
       : `Vamos sentir sua falta, ${primeiro}! Obrigado por avisar.`;
+    const lista = (convidados || []).filter(Boolean);
+    const guests = document.getElementById("thanks-guests");
+    guests.hidden = !veio || !lista.length;
+    if (!guests.hidden) {
+      guests.textContent = lista.length === 1
+        ? `Você também confirmou ${lista[0]}.`
+        : `Você também confirmou ${lista.length} pessoas: ${lista.join(", ")}.`;
+    }
     const info = document.getElementById("thanks-info");
     info.hidden = !jaConfirmado;
     if (jaConfirmado) {
@@ -279,6 +279,10 @@
       info.textContent = `Sua resposta já foi registrada em ${quando}. Não precisa confirmar de novo.`;
     }
     form.hidden = true; thanks.hidden = false; thanks.focus();
+  }
+
+  function nomesCompanhias() {
+    return form.convidados.value.split(",").map((n) => n.trim()).filter(Boolean);
   }
 
   function vem() { return form.querySelector('input[name="vem"]:checked').value === "sim"; }
@@ -292,23 +296,23 @@
     errNome.hidden = true; errEnvio.hidden = true;
 
     const p = form.querySelector('input[name="palpite"]:checked');
+    const veio = vem();
+    const convidados = veio ? [...new Set(nomesCompanhias())] : [];
     const dados = new URLSearchParams({
       nome,
-      vem: vem() ? "sim" : "nao",
-      adultos: vem() ? form.adultos.value : "0",
-      criancas: vem() ? form.criancas.value : "0",
-      palpite: vem() && p ? p.value : "",
+      vem: veio ? "sim" : "nao",
+      convidados: convidados.join("\n"),
+      palpite: veio && p ? p.value : "",
       msg: form.msg.value.trim()
     });
 
     btn.disabled = true; btn.textContent = "Enviando…";
-    const veio = vem();
     try {
       if (!SCRIPT_URL.startsWith("https://")) throw new Error("SCRIPT_URL não configurada");
       // no-cors: o Apps Script grava a linha; a resposta não precisa ser lida.
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: dados });
-      salvarConfirmacao(nome, veio);
-      mostrarObrigado(nome, veio);
+      salvarConfirmacao(nome, veio, convidados);
+      mostrarObrigado(nome, veio, null, convidados);
       form.reset(); seVem.hidden = false;
     } catch (err) {
       console.error(err);
@@ -325,7 +329,7 @@
 
   const confirmacao = lerConfirmacao();
   if (confirmacao && confirmacao.nome) {
-    mostrarObrigado(confirmacao.nome, confirmacao.vem, confirmacao.quando);
+    mostrarObrigado(confirmacao.nome, confirmacao.vem, confirmacao.quando, confirmacao.convidados);
   }
 </script>
 </body>
