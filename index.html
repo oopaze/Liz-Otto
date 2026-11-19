@@ -87,8 +87,7 @@
   .choice .s-liz { font-family: 'Pinyon Script', cursive; font-size: 30px; font-weight: 400; color: var(--rose); }
   .choice .s-otto { font-family: 'Pinyon Script', cursive; font-size: 30px; font-weight: 400; color: var(--sage); }
   .hint { font-size: 16px; font-style: italic; margin: 4px 0 0; }
-  .confirm { margin: -6px 0 18px; padding: 14px 16px; border: 1.5px solid var(--palha); border-radius: 12px; background: #FBF6EC; }
-  .confirm p { margin: 0; font-size: 17px; }
+  #convidados.alerta { border-color: var(--error); background: #FFF7F7; }
   .err { color: var(--error); font-size: 16px; font-weight: 600; margin: 6px 0 0; }
   [hidden] { display: none !important; }
   .submit {
@@ -203,10 +202,6 @@
             <p class="hint">Ex.: João Silva, Maria Souza. Deixe em branco se vier sozinho.</p>
           </div>
 
-          <div class="confirm" id="confirm-sozinho" hidden>
-            <p>Você não adicionou nenhuma companhia. Se for sozinho(a), clique em <strong>Enviar confirmação</strong> de novo.</p>
-          </div>
-
           <fieldset class="field">
             <legend>Seu palpite</legend>
             <div class="choices">
@@ -292,19 +287,13 @@
     return form.convidados.value.split(",").map((n) => n.trim()).filter(Boolean);
   }
 
-  const confirmSozinho = document.getElementById("confirm-sozinho");
-  let vaiSozinho = false;
-
   function vem() { return form.querySelector('input[name="vem"]:checked').value === "sim"; }
   form.addEventListener("change", () => {
     seVem.hidden = !vem();
-    if (!vem()) { confirmSozinho.hidden = true; vaiSozinho = false; }
+    if (!vem()) form.convidados.classList.remove("alerta");
   });
 
-  form.convidados.addEventListener("input", () => {
-    confirmSozinho.hidden = true;
-    vaiSozinho = false;
-  });
+  form.convidados.addEventListener("input", () => form.convidados.classList.remove("alerta"));
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -321,13 +310,14 @@
     }
 
     const convidados = veio ? [...new Set(nomesCompanhias())] : [];
-    if (veio && !convidados.length && !vaiSozinho) {
-      vaiSozinho = true;
-      confirmSozinho.hidden = false;
-      confirmSozinho.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (veio && !convidados.length && !window.confirm(
+      "Você não adicionou nenhuma companhia. Tem certeza que vai sozinho(a)?"
+    )) {
+      form.convidados.classList.add("alerta");
+      form.convidados.focus();
       return;
     }
-    confirmSozinho.hidden = true;
+    form.convidados.classList.remove("alerta");
     const msg = form.msg.value.trim();
     const palpite = veio && p ? p.value : "";
 
@@ -358,20 +348,19 @@
       salvarConfirmacao(nome, veio, convidados);
       mostrarObrigado(nome, veio, null, convidados);
       form.reset(); seVem.hidden = false;
-      confirmSozinho.hidden = true; vaiSozinho = false;
+      form.convidados.classList.remove("alerta");
     } catch (err) {
       console.error(err);
       errEnvio.hidden = false;
     } finally {
       btn.disabled = false; btn.textContent = "Enviar confirmação";
-      vaiSozinho = false;
     }
   });
 
   document.getElementById("edit").addEventListener("click", () => {
     thanks.hidden = true; form.hidden = false;
     form.reset(); seVem.hidden = false;
-    confirmSozinho.hidden = true; vaiSozinho = false;
+    form.convidados.classList.remove("alerta");
     form.nome.focus();
   });
 
