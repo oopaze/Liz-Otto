@@ -298,19 +298,33 @@
     const p = form.querySelector('input[name="palpite"]:checked');
     const veio = vem();
     const convidados = veio ? [...new Set(nomesCompanhias())] : [];
-    const dados = new URLSearchParams({
-      nome,
-      vem: veio ? "sim" : "nao",
-      convidados: convidados.join("\n"),
-      palpite: veio && p ? p.value : "",
-      msg: form.msg.value.trim()
-    });
+    const msg = form.msg.value.trim();
+    const palpite = veio && p ? p.value : "";
+
+    // O Apps Script atual grava uma linha por POST. Mandamos um POST por pessoa.
+    function dadosPessoa(nomePessoa, adultos, criancas, palpitePessoa, msgPessoa) {
+      return new URLSearchParams({
+        nome: nomePessoa,
+        vem: veio ? "sim" : "nao",
+        adultos: String(adultos),
+        criancas: String(criancas),
+        palpite: palpitePessoa,
+        msg: msgPessoa
+      });
+    }
+
+    const envios = [dadosPessoa(nome, veio ? 1 : 0, 0, palpite, msg)];
+    for (const convidado of convidados) {
+      envios.push(dadosPessoa(`${convidado} (Junto a ${nome})`, 1, 0, "", ""));
+    }
 
     btn.disabled = true; btn.textContent = "Enviando…";
     try {
       if (!SCRIPT_URL.startsWith("https://")) throw new Error("SCRIPT_URL não configurada");
-      // no-cors: o Apps Script grava a linha; a resposta não precisa ser lida.
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: dados });
+      // no-cors: cada POST grava uma linha; a resposta não precisa ser lida.
+      for (const dados of envios) {
+        await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: dados });
+      }
       salvarConfirmacao(nome, veio, convidados);
       mostrarObrigado(nome, veio, null, convidados);
       form.reset(); seVem.hidden = false;
