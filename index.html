@@ -201,16 +201,16 @@
             <input type="text" id="convidados" name="convidados" placeholder="Separe os nomes por vírgula">
             <p class="hint">Ex.: João Silva, Maria Souza. Deixe em branco se vier sozinho.</p>
           </div>
-
-          <fieldset class="field">
-            <legend>Seu palpite</legend>
-            <div class="choices">
-              <label class="choice rosa"><input type="radio" name="palpite" value="Liz (menina)"><span><span class="s-liz">Liz</span></span></label>
-              <label class="choice"><input type="radio" name="palpite" value="Otto (menino)"><span><span class="s-otto">Otto</span></span></label>
-            </div>
-            <p class="hint" id="err-palpite">Escolha Liz ou Otto.</p>
-          </fieldset>
         </div>
+
+        <fieldset class="field">
+          <legend>Seu palpite</legend>
+          <div class="choices">
+            <label class="choice rosa"><input type="radio" name="palpite" value="Liz (menina)"><span><span class="s-liz">Liz</span></span></label>
+            <label class="choice"><input type="radio" name="palpite" value="Otto (menino)"><span><span class="s-otto">Otto</span></span></label>
+          </div>
+          <p class="hint" id="err-palpite">Escolha Liz ou Otto.</p>
+        </fieldset>
 
         <div class="field">
           <label for="msg">Recadinho para os papais <span style="text-transform:none;letter-spacing:0;font-weight:500;font-style:italic">(opcional)</span></label>
@@ -304,7 +304,7 @@
 
     const p = form.querySelector('input[name="palpite"]:checked');
     const veio = vem();
-    if (veio && !p) {
+    if (!p) {
       form.querySelector('input[name="palpite"]').focus();
       return;
     }
@@ -319,7 +319,7 @@
     }
     form.convidados.classList.remove("alerta");
     const msg = form.msg.value.trim();
-    const palpite = veio && p ? p.value : "";
+    const palpite = p.value;
 
     // O Apps Script atual grava uma linha por POST. Mandamos um POST por pessoa.
     function dadosPessoa(nomePessoa, adultos, criancas, palpitePessoa, msgPessoa) {

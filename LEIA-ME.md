@@ -44,6 +44,7 @@ Cada pessoa ocupa uma linha:
 - a primeira linha é quem preencheu o formulário;
 - cada companhia vira uma linha própria, com o nome no formato `Fulano (Junto a Beltrano)`;
 - cada companhia recebe o mesmo palpite de quem confirmou, então também entra na contagem de votos;
+- quem marca que **não vem** também escolhe o palpite: a linha fica com Adultos=0 e Crianças=0, mas o voto entra na contagem;
 - criança não ganha linha própria: a coluna **Crianças** fica na linha de quem confirmou, para você preencher a quantidade (o formulário não pergunta idade).
 
 Para ver os totais, use em qualquer célula:
