@@ -335,7 +335,7 @@
 
     const envios = [dadosPessoa(nome, veio ? 1 : 0, 0, palpite, msg)];
     for (const convidado of convidados) {
-      envios.push(dadosPessoa(`${convidado} (Junto a ${nome})`, 1, 0, "", ""));
+      envios.push(dadosPessoa(`${convidado} (Junto a ${nome})`, 1, 0, palpite, ""));
     }
 
     btn.disabled = true; btn.textContent = "Enviando…";
